@@ -95,22 +95,47 @@
 \newcommand{\inside}[4]{\txt{#1}{#2}{#3}{\fontsize{10}{14}\selectfont #4}}
 \newcommand{\num}[1]{\centertext{92}{246}{10}{\fontsize{7}{8}\selectfont #1}}
 % 封面题目：一行放得下时居中于第一条横线；放不下时自动续写到第二条横线。
+% 两行仍放不下时，题目字号从 22pt 起每次缩小 0.5pt，直到恰好放进两行（最小 14pt）。
 \newsavebox{\covertitlebox}
 \newlength{\covertitlewidth}
+\newlength{\covertitlesize}
+\newcount\covertitlelines
 \newcommand{\covertitlelabel}{学位申请成果题目：}
+\newcommand{\covertitlefont}{\fontsize{\the\covertitlesize}{\the\covertitlesize}\selectfont}
+% 按封面上的实际排法试排一次，记下题目占用的行数。
+\newcommand{\covertitlecount}{%
+  \setbox0\vbox{\hsize=\covertitlewidth\parindent=0pt\raggedright
+    \fontsize{22}{26}\selectfont\setlength{\baselineskip}{11.6mm}%
+    \covertitlelabel{\covertitlefont\reporttitle}\par\global\covertitlelines=\prevgraf}}
+\newcommand{\covertitleshrink}{%
+  \covertitlecount
+  \let\next\relax
+  \ifnum\covertitlelines>2 \ifdim\covertitlesize>14pt
+    \addtolength{\covertitlesize}{-0.5pt}\let\next\covertitleshrink
+  \fi\fi
+  \next}
 \begin{document}
 
 % ==================== 封面 ====================
 \sbox{\covertitlebox}{\fontsize{22}{26}\selectfont\reporttitle}
 \settowidth{\covertitlewidth}{\fontsize{22}{26}\selectfont\covertitlelabel}
 \addtolength{\covertitlewidth}{65mm}
+\setlength{\covertitlesize}{22pt}
+\ifdim\wd\covertitlebox>65mm
+  \covertitleshrink
+  \ifnum\covertitlelines>2
+    \PackageWarningNoLine{kt}{封面题目在 14pt 下仍超过两行，请缩短题目}
+  \else\ifdim\covertitlesize<22pt
+    \typeout{封面题目较长，字号已缩小为 \the\covertitlesize}
+  \fi\fi
+\fi
 \pagebegin
 \centertext{92}{18}{165}{\xingkaiword\fontsize{26}{30}\selectfont \tightcover 中国科学技术大学}
 \centertext{92}{33}{170}{\sffamily\fontsize{24}{28}\selectfont 专业学位研究生学位申请成果开题报告}
 \centertext{92}{47}{100}{\fontsize{26}{30}\selectfont（样表）}
 \ifdim\wd\covertitlebox>65mm
   \node[anchor=north west] (cover-title-line) at (30,61) {\fontsize{22}{26}\selectfont \phantom{\covertitlelabel}\underline{\makebox[65mm]{}}};
-  \node[anchor=north west,text width=\covertitlewidth,align=left] at (30,61) {\fontsize{22}{26}\selectfont\setlength{\baselineskip}{11.6mm}\covertitlelabel\reporttitle\par};
+  \node[anchor=north west,text width=\covertitlewidth,align=left] at (30,61) {\fontsize{22}{26}\selectfont\setlength{\baselineskip}{11.6mm}\covertitlelabel{\covertitlefont\reporttitle}\par};
 \else
   \node[anchor=north west] (cover-title-line) at (30,61) {\fontsize{22}{26}\selectfont \covertitlelabel\underline{\makebox[65mm][c]{\reporttitle}}};
 \fi
