@@ -101,6 +101,9 @@
 \newlength{\covertitlesize}
 \newcount\covertitlelines
 \newcommand{\covertitlelabel}{学位申请成果题目：}
+% 封面不显示“（样表）”时，题目与信息栏整体上移 7mm，使空出的半行留白上下均分。
+\newsavebox{\coversamplebox}
+\newcommand{\covershift}{0}
 \newcommand{\covertitlefont}{\fontsize{\the\covertitlesize}{\the\covertitlesize}\selectfont}
 % 按封面上的实际排法试排一次，记下题目占用的行数。
 \newcommand{\covertitlecount}{%
@@ -121,6 +124,8 @@
 \settowidth{\covertitlewidth}{\fontsize{22}{26}\selectfont\covertitlelabel}
 \addtolength{\covertitlewidth}{65mm}
 \setlength{\covertitlesize}{22pt}
+\sbox{\coversamplebox}{\coversample}
+\ifdim\wd\coversamplebox=0pt \renewcommand{\covershift}{-7}\fi
 \ifdim\wd\covertitlebox>65mm
   \covertitleshrink
   \ifnum\covertitlelines>2
@@ -132,15 +137,15 @@
 \pagebegin
 \centertext{92}{18}{165}{\xingkaiword\fontsize{26}{30}\selectfont \tightcover 中国科学技术大学}
 \centertext{92}{33}{170}{\sffamily\fontsize{24}{28}\selectfont 专业学位研究生学位申请成果开题报告}
-\centertext{92}{47}{100}{\fontsize{26}{30}\selectfont（样表）}
+\centertext{92}{47}{100}{\fontsize{26}{30}\selectfont\coversample}
 \ifdim\wd\covertitlebox>65mm
-  \node[anchor=north west] (cover-title-line) at (30,61) {\fontsize{22}{26}\selectfont \phantom{\covertitlelabel}\underline{\makebox[65mm]{}}};
-  \node[anchor=north west,text width=\covertitlewidth,align=left] at (30,61) {\fontsize{22}{26}\selectfont\setlength{\baselineskip}{11.6mm}\covertitlelabel{\covertitlefont\reporttitle}\par};
+  \node[anchor=north west] (cover-title-line) at (30,61+\covershift) {\fontsize{22}{26}\selectfont \phantom{\covertitlelabel}\underline{\makebox[65mm]{}}};
+  \node[anchor=north west,text width=\covertitlewidth,align=left] at (30,61+\covershift) {\fontsize{22}{26}\selectfont\setlength{\baselineskip}{11.6mm}\covertitlelabel{\covertitlefont\reporttitle}\par};
 \else
-  \node[anchor=north west] (cover-title-line) at (30,61) {\fontsize{22}{26}\selectfont \covertitlelabel\underline{\makebox[65mm][c]{\reporttitle}}};
+  \node[anchor=north west] (cover-title-line) at (30,61+\covershift) {\fontsize{22}{26}\selectfont \covertitlelabel\underline{\makebox[65mm][c]{\reporttitle}}};
 \fi
-\draw[line width=.55pt] (30,80)--(cover-title-line.east |- 0,80);
-\foreach \y/\lab/\val in {87/学生姓名/\studentname,101/学生学号/\studentid,115/校内导师/\supervisor,129/第二导师/\secondsupervisor,143/实践导师/\practicesupervisor,157/所在院系/\department,171/专业类别/\majorcategory,185/专业领域/\majorfield,199/填表日期/\reportdate}{\txt{30}{\y}{140}{\fontsize{22}{26}\selectfont \lab：\underline{\makebox[95mm][c]{\val}}}}
+\draw[line width=.55pt] (30,80+\covershift)--(cover-title-line.east |- 0,80+\covershift);
+\foreach \y/\lab/\val in {87/学生姓名/\studentname,101/学生学号/\studentid,115/校内导师/\supervisor,129/第二导师/\secondsupervisor,143/实践导师/\practicesupervisor,157/所在院系/\department,171/专业类别/\majorcategory,185/专业领域/\majorfield,199/填表日期/\reportdate}{\txt{30}{\y+\covershift}{140}{\fontsize{22}{26}\selectfont \lab：\underline{\makebox[95mm][c]{\val}}}}
 \centertext{92}{219}{160}{\kaishuword\bfseries\fontsize{15}{18}\selectfont \tightcover 中国科学技术大学研究生院培养处}
 \centertext{92}{231}{120}{\kaishuword\bfseries\fontsize{15}{18}\selectfont \tightcover 二零二五年三月\quad 制表}
 \pageend
