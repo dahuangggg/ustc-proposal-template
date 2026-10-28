@@ -381,11 +381,30 @@
 \flowbox{\researchplan}{68.27mm}
 
 % 签名
+% \signrow{栏目名}{签名图片}：未填图片时为空白横线；填写后图片居中置于横线上方，
+% 图高 9mm、下沿略低于横线，且不占行高，不改变各行间距。
+\newlength{\signlinewidth}
+\ExplSyntaxOn
+\NewDocumentCommand{\signrow}{mm}
+  {
+    #1
+    \tl_if_blank:oTF {#2}
+      { \hrulefill }
+      {
+        \settowidth{\signlinewidth}{#1}
+        \setlength{\signlinewidth}{\dimexpr\linewidth-\signlinewidth\relax}
+        \rlap{\rule{\signlinewidth}{0.4pt}}
+        \makebox[\signlinewidth][c]{\smash{\raisebox{-1.5mm}{\includegraphics[height=9mm,width=\dimexpr\signlinewidth-4mm\relax,keepaspectratio]{#2}}}}
+      }
+  }
+\NewDocumentCommand{\signdatefield}{}
+  { \tl_if_blank:oTF {\signdate} { 年\qquad 月\qquad 日 } { \signdate } }
+\ExplSyntaxOff
 \vspace{12mm}
 \hfill\begin{minipage}{90mm}\fontsize{12}{22}\selectfont
-研究生本人签名：\hrulefill\\
-校内导师（主导师）签名：\hrulefill\\
-实践导师签名：\hrulefill\\
-\makebox[\linewidth][r]{年\qquad 月\qquad 日}
+\signrow{研究生本人签名：}{\studentsignature}\\
+\signrow{校内导师（主导师）签名：}{\supervisorsignature}\\
+\signrow{实践导师签名：}{\practicesignature}\\
+\makebox[\linewidth][r]{\signdatefield}
 \end{minipage}
 \end{document}

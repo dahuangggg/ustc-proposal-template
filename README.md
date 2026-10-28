@@ -64,6 +64,21 @@
 
 中文主题词之间请用 `\quad` 分隔，例如 `异常检测\quad 智能运维`。直接输入的空格在汉字之间会被忽略。英文关键词按表格要求用 `/` 分隔。
 
+### 签名
+
+电子版提交时，可在 `content.tex` 末尾填写签名图片的文件名和签名日期：
+
+```latex
+\newcommand{\studentsignature}{sign_student.png}
+\newcommand{\supervisorsignature}{sign_supervisor.png}
+\newcommand{\practicesignature}{}          % 留空则保留空白横线
+\newcommand{\signdate}{2026 年 11 月 1 日}  % 留空则显示空白的“年 月 日”
+```
+
+- 签名图片会自动缩放到 9mm 高，居中放在对应横线上，不改变签名区的行距。
+- 建议在白纸上签名后扫描或拍照，**去除背景并裁掉四周空白**，保存为透明背景的 PNG，再与 `content.tex` 一并上传。
+- 导师签名图片请由导师本人提供或经导师同意后使用。是否接受签名图片请以学院要求为准；不使用图片时，也可导出 PDF 后打印手签再扫描。
+
 ### 特殊字符
 
 以下字符在 LaTeX 中有特殊含义，出现在正文中时需要写成右侧形式：
