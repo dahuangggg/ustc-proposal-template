@@ -8,7 +8,16 @@
 
 % 页面设置与宏包
 \usepackage[paperwidth=184.03mm,paperheight=260.03mm,margin=0mm]{geometry}
-\usepackage{tikz,amssymb,framed,fancyhdr}
+\usepackage{graphicx,tikz,amssymb,framed,fancyhdr,url}
+% 网址请写成 \url{...}：与正文同字体，并允许在任意字母、数字处断行，避免长网址撑开整行。
+\urlstyle{same}
+\makeatletter
+\g@addto@macro{\UrlBreaks}{\do\a\do\b\do\c\do\d\do\e\do\f\do\g\do\h\do\i\do\j\do\k\do\l\do\m
+  \do\n\do\o\do\p\do\q\do\r\do\s\do\t\do\u\do\v\do\w\do\x\do\y\do\z
+  \do\A\do\B\do\C\do\D\do\E\do\F\do\G\do\H\do\I\do\J\do\K\do\L\do\M
+  \do\N\do\O\do\P\do\Q\do\R\do\S\do\T\do\U\do\V\do\W\do\X\do\Y\do\Z
+  \do0\do1\do2\do3\do4\do5\do6\do7\do8\do9}
+\makeatother
 \usetikzlibrary{calc}
 
 % 优先使用编译平台已安装的字体；平台没有时改用项目 fonts 目录中的同名字体文件。
@@ -94,6 +103,46 @@
 \newcommand{\heading}[3]{\txt{#1}{#2}{155}{\sffamily\fontsize{15}{18}\selectfont #3}}
 \newcommand{\inside}[4]{\txt{#1}{#2}{#3}{\fontsize{10}{14}\selectfont #4}}
 \newcommand{\num}[1]{\centertext{92}{246}{10}{\fontsize{7}{8}\selectfont #1}}
+% 固定格子自动缩字号：内容在默认字号下放不进格子时，每次缩小 0.5pt 直到放得下，行距同比例缩小；
+% 缩到下限仍放不下时给出警告，提示精简内容。
+\newlength{\fitsize}
+\newcommand{\fitfont}{\fontsize{\the\fitsize}{\the\dimexpr1.4\fitsize\relax}\selectfont}
+% \fitshrink{宽}{高}{最小字号}{内容}：用与格子相同设置的 TikZ 节点试排，求出放得下的字号，结果存于 \fitsize。
+\newcommand{\fitshrink}[4]{%
+  \setbox0\hbox{\tikz\node[text width=#1,align=left,inner sep=0pt,outer sep=0pt]{\fitfont #4\par};}%
+  \let\next\relax
+  \ifdim\dimexpr\ht0+\dp0\relax>#2 \ifdim\fitsize>#3
+    \addtolength{\fitsize}{-.5pt}\def\next{\fitshrink{#1}{#2}{#3}{#4}}%
+  \fi\fi
+  \next}
+% TikZ 画面中正文字体被置空，无法在画面内试排；因此在进入简况页画面之前，
+% 用 \fitprepare{键名}{宽}{高}{名称}{内容} 预先算好各格子的字号，画面内按键名取用。
+\newcommand{\fitprepare}[5]{%
+  \setlength{\fitsize}{10pt}\fitshrink{#2}{#3}{7pt}{#5}%
+  \ifdim\dimexpr\ht0+\dp0\relax>#3
+    \PackageWarningNoLine{kt}{#4内容过多，缩小字号后仍放不下格子，请精简}\fi
+  \expandafter\xdef\csname fitsize@#1\endcsname{\the\fitsize}}
+\newcommand{\fituse}[1]{\setlength{\fitsize}{\csname fitsize@#1\endcsname}}
+% \fitcellleft{x}{y}{宽}{键名}{内容}：竖直居中的格子；\fitinside：从格子顶部开始排。
+\newcommand{\fitcellleft}[5]{\fituse{#4}%
+  \node[anchor=west,text width=#3mm,align=left] at (#1,#2) {\fitfont #5\par};}
+\newcommand{\fitinside}[5]{\fituse{#4}%
+  \node[anchor=north west,text width=#3mm,align=left] at (#1,#2) {\fitfont #5\par};}
+% \fitline{宽}{名称}{内容}：封面信息栏，单行放不下时从 22pt 起缩小（最小 12pt）。
+\newcommand{\fitlineshrink}[2]{%
+  \sbox0{\fontsize{\the\fitsize}{\the\fitsize}\selectfont #2}%
+  \let\next\relax
+  \ifdim\wd0>\dimexpr#1-1mm\relax \ifdim\fitsize>12pt
+    \addtolength{\fitsize}{-.5pt}\def\next{\fitlineshrink{#1}{#2}}%
+  \fi\fi
+  \next}
+\newcommand{\fitline}[3]{\setlength{\fitsize}{22pt}\fitlineshrink{#1}{#3}%
+  \ifdim\wd0>\dimexpr#1-1mm\relax\PackageWarningNoLine{kt}{封面“#2”内容过长，缩小字号后仍放不下，请精简}\fi
+  \ifdim\wd0>#1
+    \underline{\makebox[#1][l]{\fontsize{\the\fitsize}{\the\fitsize}\selectfont #3}}%
+  \else
+    \underline{\makebox[#1][c]{\fontsize{\the\fitsize}{\the\fitsize}\selectfont #3}}%
+  \fi}
 % 封面题目：一行放得下时居中于第一条横线；放不下时自动续写到第二条横线。
 % 两行仍放不下时，题目字号从 22pt 起每次缩小 0.5pt，直到恰好放进两行（最小 14pt）。
 \newsavebox{\covertitlebox}
@@ -117,6 +166,9 @@
     \addtolength{\covertitlesize}{-0.5pt}\let\next\covertitleshrink
   \fi\fi
   \next}
+% 正文边框补齐到页底：上一遍编译中若某节之后的标题被移到下一页，.aux 中会记下该页剩余的高度，
+% 本遍据此加长该节边框，使其延伸到页底。须在导言区定义，以便读入 .aux 时可用。
+\newcommand{\flowfillset}[2]{\expandafter\gdef\csname flowfill@#1\endcsname{#2}}
 \begin{document}
 
 % ==================== 封面 ====================
@@ -145,7 +197,7 @@
   \node[anchor=north west] (cover-title-line) at (30,61+\covershift) {\fontsize{22}{26}\selectfont \covertitlelabel\underline{\makebox[65mm][c]{\reporttitle}}};
 \fi
 \draw[line width=.55pt] (30,80+\covershift)--(cover-title-line.east |- 0,80+\covershift);
-\foreach \y/\lab/\val in {87/学生姓名/\studentname,101/学生学号/\studentid,115/校内导师/\supervisor,129/第二导师/\secondsupervisor,143/实践导师/\practicesupervisor,157/所在院系/\department,171/专业类别/\majorcategory,185/专业领域/\majorfield,199/填表日期/\reportdate}{\txt{30}{\y+\covershift}{140}{\fontsize{22}{26}\selectfont \lab：\underline{\makebox[95mm][c]{\val}}}}
+\foreach \y/\lab/\val in {87/学生姓名/\studentname,101/学生学号/\studentid,115/校内导师/\supervisor,129/第二导师/\secondsupervisor,143/实践导师/\practicesupervisor,157/所在院系/\department,171/专业类别/\majorcategory,185/专业领域/\majorfield,199/填表日期/\reportdate}{\txt{30}{\y+\covershift}{140}{\fontsize{22}{26}\selectfont \lab：\fitline{95mm}{\lab}{\val}}}
 \centertext{92}{219}{160}{\kaishuword\bfseries\fontsize{15}{18}\selectfont \tightcover 中国科学技术大学研究生院培养处}
 \centertext{92}{231}{120}{\kaishuword\bfseries\fontsize{15}{18}\selectfont \tightcover 二零二五年三月\quad 制表}
 \pageend
@@ -159,6 +211,13 @@
 \pageend
 % ==================== 一、简况 ====================
 % 外框与合并单元格按 Word 参照页定位。
+% 先算好各固定格子的字号（内容放不下时自动缩小）。
+\fitprepare{cntitle}{110mm}{10.5mm}{简况表中文题目}{\reporttitle}
+\fitprepare{entitle}{110mm}{10.5mm}{简况表英文题目}{\englishtitle}
+\fitprepare{abstract}{135mm}{55mm}{摘要}{\abstracttext}
+\fitprepare{cnkey}{120mm}{6.5mm}{中文关键词}{\keywords}
+\fitprepare{enkey}{120mm}{6.5mm}{英文关键词}{\englishkeywords}
+\fitprepare{source}{145mm}{25mm}{选题来源}{\sourceoftopic}
 \pagebegin
 \heading{15}{17}{一、简况}
 % 表格外框和分割线
@@ -193,18 +252,18 @@
 \cellcenter{21.75}{119.5}{15}{\sffamily\bfseries\fontsize{10}{12}\selectfont 学位申请\\成果题目}
 \cellcenter{41.75}{113.75}{20}{\fontsize{10}{12}\selectfont 中\quad 文}
 \cellcenter{41.75}{125.25}{20}{\fontsize{10}{12}\selectfont 英\quad 文}
-\cellleft{55}{113.75}{110}{\reporttitle}\cellleft{55}{125.25}{110}{\englishtitle}
+\fitcellleft{55}{113.75}{110}{cntitle}{\reporttitle}\fitcellleft{55}{125.25}{110}{entitle}{\englishtitle}
 \cellcenter{16.9}{172.5}{5}{\sffamily\bfseries\fontsize{10}{10}\selectfont 学\\位\\申\\请\\成\\果\\摘\\要\\和\\关\\键\\词}
 \cellcenter{25}{160}{8}{\fontsize{10}{14}\selectfont 摘\\要}
-\inside{32}{133}{135}{\abstracttext}
+\fitinside{32}{133}{135}{abstract}{\abstracttext}
 \cellcenter{25}{201.5}{8}{\fontsize{10}{12}\selectfont 关\\键\\词}
 \cellcenter{36.75}{203.5}{10}{中文}\cellcenter{36.75}{210.5}{10}{英文}
 \cellleft{31}{194.5}{138}{关键词数量三至五个，主题词之间空一格（英文用“/ ”分隔）}
-\cellleft{45}{203.5}{120}{\keywords}\cellleft{45}{210.5}{120}{\englishkeywords}
+\fitcellleft{45}{203.5}{120}{cnkey}{\keywords}\fitcellleft{45}{210.5}{120}{enkey}{\englishkeywords}
 
 % 选题来源
 \cellcenter{17}{227.5}{5}{\sffamily\bfseries\fontsize{10}{12}\selectfont 选\\题\\来\\源}
-\inside{21}{215}{145}{\sourceoftopic}
+\fitinside{21}{215}{145}{source}{\sourceoftopic}
 \num{1}\pageend
 % ==================== 二至七、报告正文 ====================
 % 正文以可分页边框排版；宏内可使用 \par 分段。
@@ -216,21 +275,63 @@
 % 标题前检查当前页剩余空间：不足以放下标题和约三行正文时换页，避免标题单独落在页底。
 % 空白模板中，四、六两节前的剩余空间不足此值，因而仍各自从新页开始，保持原表版式；
 % 前一节正文较长、在页面中部结束时，下一节直接接排，不留大片空白。
+% 标题被移到下一页时，上一节的边框延伸到页底，使页面底部整齐。
+% 因此换页时，把该页剩余高度记在上一节的边框名下，下一遍编译时由该边框补齐到页底。
 \newlength{\flowneed}
 \setlength{\flowneed}{30mm}
-\newcommand{\flowheading}[1]{\par
+\newcounter{flowbox}
+\newlength{\flowextra}
+\newlength{\flowgap}
+% \flowrecord{补齐高度}：写入 .aux 供下一遍使用。补齐高度 = 剩余高度 + 本遍已补的高度，使多遍编译结果稳定；
+% 边框后的 1mm 间距在页底会被舍弃，可一并补入；预留 2pt，避免舍入误差使边框溢出到下一页。
+% 数值变化时提示需要再编译一遍。
+\newcommand{\flowrecord}[1]{%
+  \ifnum\value{flowbox}>0
+    \setlength{\flowgap}{#1}%
+    \ifdim\flowgap<0pt \setlength{\flowgap}{0pt}\fi
+    \immediate\write\csname @auxout\endcsname{\string\flowfillset{\theflowbox}{\the\flowgap}}%
+    \ifdim\dimexpr\flowgap-\flowextra\relax>.5pt \flowrerun\fi
+    \ifdim\dimexpr\flowextra-\flowgap\relax>.5pt \flowrerun\fi
+  \fi}
+\newcommand{\flowrerun}{\PackageWarningNoLine{kt}{Frame heights changed. Rerun to get cross-references right}}
+\newcommand{\flowheading}[1]{\par\penalty10000
   \begingroup\dimen0=\pagegoal\advance\dimen0-\pagetotal
-  \ifdim\dimen0<\flowneed\clearpage\fi\endgroup
+  \ifdim\dimen0<\flowneed \flowrecord{\dimexpr\dimen0+\flowextra+1mm-2pt\relax}\clearpage\else\flowrecord{0pt}\fi\endgroup
   \noindent{\sffamily\fontsize{15}{19}\selectfont #1}\par\nopagebreak\vspace{1mm}}
 \newlength{\flowremaining}
 \newlength{\flowroom}
 \newsavebox{\flowmeasure}
+% 边框内不能放浮动体：把 figure、table 改为原地排版，\caption 照常编号（图 1、表 1）。
+\makeatletter
+% 图表标题按中文习惯排为“图 1　标题”，不用冒号。
+\long\def\@makecaption#1#2{\vskip\abovecaptionskip{\centering #1\quad #2\par}\vskip\belowcaptionskip}
+\newcommand{\flowfloats}{%
+  \renewenvironment{figure}[1][]{\par\addvspace{\medskipamount}\centering\def\@captype{figure}}{\par\addvspace{\medskipamount}}%
+  \renewenvironment{table}[1][]{\par\addvspace{\medskipamount}\centering\def\@captype{table}}{\par\addvspace{\medskipamount}}}
+\makeatother
+% 试排正文以测量高度时会让计数器多走一遍：试排前后保存并恢复，避免图表、脚注编号跳号。
+\newcommand{\flowsavecounters}{\edef\flowrestorecounters{%
+  \noexpand\setcounter{figure}{\the\value{figure}}\noexpand\setcounter{table}{\the\value{table}}%
+  \noexpand\setcounter{footnote}{\the\value{footnote}}\noexpand\setcounter{equation}{\the\value{equation}}}}
+% 边框内的脚注会丢失：框内只排脚注编号并暂存脚注内容，边框结束后统一输出到页面底部。
+\newtoks\flownotes
+\newcommand{\flownotesetup}{\renewcommand{\footnote}[1]{\footnotemark
+  \begingroup\edef\x{\endgroup\global\flownotes{\the\flownotes
+    \noexpand\footnotetext[\the\value{footnote}]{\unexpanded{##1}}}}\x}}
+\newcommand{\flownotesflush}{\the\flownotes\global\flownotes{}}
 \newcommand{\flowbox}[2]{%
   \setlength{\FrameRule}{0.3pt}\setlength{\FrameSep}{2mm}\setlength{\topsep}{0pt}\setlength{\partopsep}{0pt}%
   % 以空白模板的留白为最小高度；正文超出时由 framed 自动分页。
+  \stepcounter{flowbox}%
+  \setlength{\flowextra}{0pt}%
+  \ifcsname flowfill@\theflowbox\endcsname
+    \setlength{\flowextra}{\csname flowfill@\theflowbox\endcsname}%
+  \fi
   \setlength{\flowremaining}{#2}%
+  \flowsavecounters
   \sbox{\flowmeasure}{\begin{minipage}{\dimexpr\linewidth-2\FrameSep-2\FrameRule\relax}%
-    \fontsize{10.5}{15}\selectfont #1\par\end{minipage}}%
+    \flowfloats\renewcommand{\footnote}[1]{\footnotemark}\fontsize{10.5}{15}\selectfont #1\par\end{minipage}}%
+  \flowrestorecounters
   \addtolength{\flowremaining}{-\ht\flowmeasure}%
   \addtolength{\flowremaining}{-\dp\flowmeasure}%
   % 当前页放不下整个框、但放得下正文时，留白只填到页底，避免空白边框溢出到下一页。
@@ -244,10 +345,15 @@
       \fi
     \fi
   \fi
+  % 补齐到页底的高度加在留白之后（正文已超过最小高度时，从正文末尾起算）。
+  \ifdim\flowextra>0pt
+    \ifdim\flowremaining<0pt \setlength{\flowremaining}{0pt}\fi
+    \addtolength{\flowremaining}{\flowextra}%
+  \fi
   % 跨页时不在页底留下段落首行、也不把段落末行单独带到下一页。
-  \begin{framed}\clubpenalty=10000 \widowpenalty=10000 \fontsize{10.5}{15}\selectfont #1\par
+  \begin{framed}\flowfloats\flownotesetup\clubpenalty=10000 \widowpenalty=10000 \fontsize{10.5}{15}\selectfont #1\par
   \ifdim\flowremaining>0pt\vspace*{\flowremaining}\fi
-  \end{framed}\vspace{1mm}}
+  \end{framed}\flownotesflush\vspace{1mm}}
 
 % 二、选题依据
 \flowheading{二、选题依据}
