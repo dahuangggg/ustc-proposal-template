@@ -50,6 +50,11 @@
 
 % 基本信息和报告正文请在 content.tex 中填写。
 \input{content}
+\providecommand{\secondsupervisor}{}
+\newif\ifcoversecondsupervisor
+\ExplSyntaxOn
+\tl_if_blank:oF { \secondsupervisor } { \coversecondsupervisortrue }
+\ExplSyntaxOff
 
 % ==================== 页面排版命令 ====================
 % 以下命令控制固定页面的坐标和边框，通常无需修改。
@@ -106,7 +111,9 @@
 % 固定格子自动缩字号：内容在默认字号下放不进格子时，每次缩小 0.5pt 直到放得下，行距同比例缩小；
 % 缩到下限仍放不下时给出警告，提示精简内容。
 \newlength{\fitsize}
-\newcommand{\fitfont}{\fontsize{\the\fitsize}{\the\dimexpr1.4\fitsize\relax}\selectfont}
+% \fitleading 为行距与字号之比；ctex 默认还会再乘 1.3，题目格高度有限，单独设为 1。
+\newcommand{\fitleading}{1.4}
+\newcommand{\fitfont}{\fontsize{\the\fitsize}{\the\dimexpr\fitleading\fitsize\relax}\selectfont}
 % \fitshrink{宽}{高}{最小字号}{内容}：用与格子相同设置的 TikZ 节点试排，求出放得下的字号，结果存于 \fitsize。
 \newcommand{\fitshrink}[4]{%
   \setbox0\hbox{\tikz\node[text width=#1,align=left,inner sep=0pt,outer sep=0pt]{\fitfont #4\par};}%
@@ -150,9 +157,6 @@
 \newlength{\covertitlesize}
 \newcount\covertitlelines
 \newcommand{\covertitlelabel}{学位申请成果题目：}
-% 封面不显示“（样表）”时，题目与信息栏整体上移 7mm，使空出的半行留白上下均分。
-\newsavebox{\coversamplebox}
-\newcommand{\covershift}{0}
 \newcommand{\covertitlefont}{\fontsize{\the\covertitlesize}{\the\covertitlesize}\selectfont}
 % 按封面上的实际排法试排一次，记下题目占用的行数。
 \newcommand{\covertitlecount}{%
@@ -176,8 +180,6 @@
 \settowidth{\covertitlewidth}{\fontsize{22}{26}\selectfont\covertitlelabel}
 \addtolength{\covertitlewidth}{65mm}
 \setlength{\covertitlesize}{22pt}
-\sbox{\coversamplebox}{\coversample}
-\ifdim\wd\coversamplebox=0pt \renewcommand{\covershift}{-7}\fi
 \ifdim\wd\covertitlebox>65mm
   \covertitleshrink
   \ifnum\covertitlelines>2
@@ -191,13 +193,21 @@
 \centertext{92}{33}{170}{\sffamily\fontsize{24}{28}\selectfont 专业学位研究生学位申请成果开题报告}
 \centertext{92}{47}{100}{\fontsize{26}{30}\selectfont\coversample}
 \ifdim\wd\covertitlebox>65mm
-  \node[anchor=north west] (cover-title-line) at (30,61+\covershift) {\fontsize{22}{26}\selectfont \phantom{\covertitlelabel}\underline{\makebox[65mm]{}}};
-  \node[anchor=north west,text width=\covertitlewidth,align=left] at (30,61+\covershift) {\fontsize{22}{26}\selectfont\setlength{\baselineskip}{11.6mm}\covertitlelabel{\covertitlefont\reporttitle}\par};
+  \node[anchor=north west] (cover-title-line) at (30,61) {\fontsize{22}{26}\selectfont \phantom{\covertitlelabel}\underline{\makebox[65mm]{}}};
+  \node[anchor=north west,text width=\covertitlewidth,align=left] at (30,61) {\fontsize{22}{26}\selectfont\setlength{\baselineskip}{11.6mm}\covertitlelabel{\covertitlefont\reporttitle}\par};
 \else
-  \node[anchor=north west] (cover-title-line) at (30,61+\covershift) {\fontsize{22}{26}\selectfont \covertitlelabel\underline{\makebox[65mm][c]{\reporttitle}}};
+  \node[anchor=north west] (cover-title-line) at (30,61) {\fontsize{22}{26}\selectfont \covertitlelabel\underline{\makebox[65mm][c]{\reporttitle}}};
 \fi
-\draw[line width=.55pt] (30,80+\covershift)--(cover-title-line.east |- 0,80+\covershift);
-\foreach \y/\lab/\val in {87/学生姓名/\studentname,101/学生学号/\studentid,115/校内导师/\supervisor,129/第二导师/\secondsupervisor,143/实践导师/\practicesupervisor,157/所在院系/\department,171/专业类别/\majorcategory,185/专业领域/\majorfield,199/填表日期/\reportdate}{\txt{30}{\y+\covershift}{140}{\fontsize{22}{26}\selectfont \lab：\fitline{95mm}{\lab}{\val}}}
+\draw[line width=.55pt] (30,80)--(cover-title-line.east |- 0,80);
+\foreach \y/\lab/\val in {87/学生姓名/\studentname,101/学生学号/\studentid,115/校内导师/\supervisor}{%
+  \txt{30}{\y}{140}{\fontsize{22}{26}\selectfont \lab：\fitline{95mm}{\lab}{\val}}}
+\def\coverfieldshift{-14}
+\ifcoversecondsupervisor
+  \txt{30}{129}{140}{\fontsize{22}{26}\selectfont 第二导师：\fitline{95mm}{第二导师}{\secondsupervisor}}
+  \def\coverfieldshift{0}
+\fi
+\foreach \y/\lab/\val in {143/实践导师/\practicesupervisor,157/所在院系/\department,171/专业类别/\majorcategory,185/专业领域/\majorfield,199/填表日期/\reportdate}{%
+  \txt{30}{\y+\coverfieldshift}{140}{\fontsize{22}{26}\selectfont \lab：\fitline{95mm}{\lab}{\val}}}
 \centertext{92}{219}{160}{\kaishuword\bfseries\fontsize{15}{18}\selectfont \tightcover 中国科学技术大学研究生院培养处}
 \centertext{92}{231}{120}{\kaishuword\bfseries\fontsize{15}{18}\selectfont \tightcover 二零二五年三月\quad 制表}
 \pageend
@@ -212,8 +222,10 @@
 % ==================== 一、简况 ====================
 % 外框与合并单元格按 Word 参照页定位。
 % 先算好各固定格子的字号（内容放不下时自动缩小）。
+\renewcommand{\fitleading}{1}
 \fitprepare{cntitle}{110mm}{10.5mm}{简况表中文题目}{\reporttitle}
 \fitprepare{entitle}{110mm}{10.5mm}{简况表英文题目}{\englishtitle}
+\renewcommand{\fitleading}{1.4}
 \fitprepare{abstract}{135mm}{55mm}{摘要}{\abstracttext}
 \fitprepare{cnkey}{120mm}{6.5mm}{中文关键词}{\keywords}
 \fitprepare{enkey}{120mm}{6.5mm}{英文关键词}{\englishkeywords}
@@ -252,7 +264,9 @@
 \cellcenter{21.75}{119.5}{15}{\sffamily\bfseries\fontsize{10}{12}\selectfont 学位申请\\成果题目}
 \cellcenter{41.75}{113.75}{20}{\fontsize{10}{12}\selectfont 中\quad 文}
 \cellcenter{41.75}{125.25}{20}{\fontsize{10}{12}\selectfont 英\quad 文}
+\renewcommand{\fitleading}{1}
 \fitcellleft{55}{113.75}{110}{cntitle}{\reporttitle}\fitcellleft{55}{125.25}{110}{entitle}{\englishtitle}
+\renewcommand{\fitleading}{1.4}
 \cellcenter{16.9}{172.5}{5}{\sffamily\bfseries\fontsize{10}{10}\selectfont 学\\位\\申\\请\\成\\果\\摘\\要\\和\\关\\键\\词}
 \cellcenter{25}{160}{8}{\fontsize{10}{14}\selectfont 摘\\要}
 \fitinside{32}{133}{135}{abstract}{\abstracttext}
