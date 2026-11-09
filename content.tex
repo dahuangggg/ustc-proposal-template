@@ -3,7 +3,7 @@
 % 各命令中预填的是表格原有的提示文本，填写时请删除后再写入自己的内容。
 
 % ==================== 基本信息 ====================
-% 封面“（样表）”字样；正式提交时清空花括号内的文字，下方内容会自动上移半行。
+% 封面“（样表）”字样；正式提交时清空花括号内的文字。
 \newcommand{\coversample}{（样表）}
 % 简况表和封面为固定布局，填写较长内容后请检查是否超出边框。
 % 封面题目超出第一条横线时会自动续写到第二条横线；两行仍放不下时自动缩小题目字号。
@@ -12,7 +12,7 @@
 \newcommand{\studentid}{}
 \newcommand{\gender}{}
 \newcommand{\supervisor}{}
-\newcommand{\secondsupervisor}{（选填）}
+\newcommand{\secondsupervisor}{} % 可选，留空则封面不显示这一行。
 \newcommand{\practicesupervisor}{}
 \newcommand{\department}{软件学院}
 \newcommand{\majorcategory}{电子信息 0854}
@@ -50,8 +50,10 @@
 % 表格：\begin{table}\caption{表题}\begin{tabular}{|l|l|}...\end{tabular}\end{table}
 % 网址：写成 \url{https://...}，过长时会自动断行；网址中的 % 和 # 需写成 \% 和 \#。
 % 脚注：可直接用 \footnote{...}，脚注内容排在该节边框结束的那一页底部。
+% 小节标题：写成 \subheading{（一）小节名称}，顶格加粗，不会单独留在页底。
 
 % 二、选题依据
+% 在 references.bib 添加条目，在正文用 \cite{文献键} 引用，文献列表自动排在本节末尾。
 \newcommand{\topicbasis}{%
   % 提示文本，填写时删除。
   阐述该选题的研究意义，或工程设计的价值和意义，国内外概况和发展趋势，选题的先进性和实用性，技术难度及工作量。附上主要参考文献（列出作者、论文名称、期刊名称、出版年月）。
