@@ -7,17 +7,18 @@
 \newcommand{\coversample}{（样表）}
 % 简况表和封面为固定布局，填写较长内容后请检查是否超出边框。
 % 封面题目超出第一条横线时会自动续写到第二条横线；两行仍放不下时自动缩小题目字号。
-\newcommand{\reporttitle}{}
-\newcommand{\studentname}{}
-\newcommand{\studentid}{}
-\newcommand{\gender}{}
-\newcommand{\supervisor}{}
-\newcommand{\secondsupervisor}{} % 可选，留空则封面不显示这一行。
-\newcommand{\practicesupervisor}{}
-\newcommand{\department}{软件学院}
-\newcommand{\majorcategory}{电子信息 0854}
-\newcommand{\majorfield}{软件工程 085405}
-\newcommand{\reportdate}{}
+\newcommand{\reporttitle}{} % 中文题目
+\newcommand{\englishtitle}{} % 英文题目
+\newcommand{\studentname}{} % 学生姓名
+\newcommand{\studentid}{} % 学生学号
+\newcommand{\gender}{} % 性别（简况）
+\newcommand{\supervisor}{} % 校内导师
+\newcommand{\secondsupervisor}{} % 第二导师，可选，留空则封面不显示这一行。
+\newcommand{\practicesupervisor}{} % 实践导师
+\newcommand{\department}{软件学院} % 所在院系
+\newcommand{\majorcategory}{电子信息 0854} % 专业类别
+\newcommand{\majorfield}{软件工程 085405} % 专业领域
+\newcommand{\reportdate}{} % 填表日期，如 2026 年 11 月 9 日
 
 % ==================== 勾选项 ====================
 % 填写选项名称即可勾选，名称须与下方列出的完全一致，多个选项用英文逗号分隔；留空则不勾选。
@@ -32,11 +33,12 @@
 \newcommand{\doctorachievement}{}
 \newcommand{\doctorother}{}% 勾选“其他”时填写具体形式
 
-\newcommand{\englishtitle}{}
-\newcommand{\abstracttext}{}
+% ==================== 摘要、关键词和选题来源 ====================
+\newcommand{\abstracttext}{} % 摘要
 % 中文主题词之间请用 \quad 分隔，如 {异常检测\quad 智能运维}；直接输入的空格会被忽略。
-\newcommand{\keywords}{}
-\newcommand{\englishkeywords}{}
+\newcommand{\keywords}{} % 中文关键词
+\newcommand{\englishkeywords}{} % 英文关键词，用 / 分隔
+% 选题来源
 \newcommand{\sourceoftopic}{%
   % 提示文本，填写时删除。
   工程博士必须填写研究所依托的重大工程项目，并标明项目编号。
