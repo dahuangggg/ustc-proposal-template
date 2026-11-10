@@ -61,6 +61,7 @@
 % 基本信息和报告正文请在 content.tex 中填写。
 \input{content}
 \providecommand{\secondsupervisor}{}
+\providecommand{\boxlayout}{原表}% 旧版 content.tex 没有这一项时按原表留白
 \newif\ifcoversecondsupervisor
 \ExplSyntaxOn
 \tl_if_blank:oF { \secondsupervisor } { \coversecondsupervisortrue }
@@ -323,11 +324,15 @@
 \newcommand{\flowrerun}{\PackageWarningNoLine{kt}{Frame heights changed. Rerun to get cross-references right}}
 \newcommand{\flowheading}[1]{\par\penalty10000
   \begingroup\dimen0=\pagegoal\advance\dimen0-\pagetotal
-  \ifdim\dimen0<\flowneed \flowrecord{\dimexpr\dimen0+\flowextra+\flowboxgap-.3pt\relax}\newpage\else\flowrecord{0pt}\fi\endgroup
+  \advance\dimen0\flowextra\ifdim\dimen0<\flowneed \flowrecord{\dimexpr\dimen0+\flowboxgap-.3pt\relax}\newpage\else\flowrecord{0pt}\fi\endgroup
   \noindent{\sffamily\fontsize{16}{19}\selectfont #1}\par\nopagebreak\vspace{1mm}}
 \newlength{\flowremaining}
 \newlength{\flowroom}
 \newsavebox{\flowmeasure}
+\newlength{\flowcompactmin}
+\setlength{\flowcompactmin}{16mm}% 紧凑模式的最小高度，约三行正文
+\AtBeginDocument{\ifdefstring{\boxlayout}{原表}{}{\ifdefstring{\boxlayout}{紧凑}{}{%
+  \PackageWarningNoLine{kt}{无法识别的边框模式“\boxlayout”，可选项为：原表、紧凑；已按原表排版}}}}
 % 边框内不能放浮动体：把 figure、table 改为原地排版，\caption 照常编号（图 1、表 1）。
 \makeatletter
 % 图表标题按中文习惯排为“图 1　标题”，不用冒号。
@@ -367,7 +372,8 @@
   \ifcsname flowfill@\theflowbox\endcsname
     \setlength{\flowextra}{\csname flowfill@\theflowbox\endcsname}%
   \fi
-  \setlength{\flowremaining}{#2}%
+  % 紧凑模式：边框贴合内容，只保留约三行的最小高度。
+  \ifdefstring{\boxlayout}{紧凑}{\setlength{\flowremaining}{\flowcompactmin}}{\setlength{\flowremaining}{#2}}%
   \flowsavecounters
   \sbox{\flowmeasure}{\begin{minipage}{\dimexpr\linewidth-2\FrameSep-2\FrameRule\relax}%
     \flowfloats\renewcommand{\footnote}[1]{\footnotemark}\flowbodyfont\setlength{\parindent}{2em}#1\par\end{minipage}}%
@@ -382,6 +388,9 @@
     \ifdim\dimexpr\ht\flowmeasure+\dp\flowmeasure+\flowremaining\relax>\flowroom
       \ifdim\dimexpr\ht\flowmeasure+\dp\flowmeasure\relax<\flowroom
         \setlength{\flowremaining}{\dimexpr\flowroom-\ht\flowmeasure-\dp\flowmeasure\relax}%
+      \else
+        % 正文本身就要跨页时不再补留白，避免空白被推到下一页形成空框。
+        \setlength{\flowremaining}{0pt}%
       \fi
     \fi
   \fi
