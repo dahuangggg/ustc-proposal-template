@@ -8,7 +8,7 @@
 
 % 页面设置与宏包
 \usepackage[paperwidth=184.03mm,paperheight=260.03mm,margin=0mm]{geometry}
-\usepackage{graphicx,tikz,amssymb,framed,fancyhdr,url,etoolbox}
+\usepackage{graphicx,tikz,amsmath,amssymb,framed,fancyhdr,url,etoolbox}
 \usepackage[backend=biber,style=gb7714-2015,sorting=none]{biblatex}
 \addbibresource{references.bib}
 % 边框内正文字号 10.5pt；ctex 默认再乘 1.3，实际行距约 15.4pt，与 Word 原表一致。
@@ -28,7 +28,6 @@
   \do\N\do\O\do\P\do\Q\do\R\do\S\do\T\do\U\do\V\do\W\do\X\do\Y\do\Z
   \do0\do1\do2\do3\do4\do5\do6\do7\do8\do9}
 \makeatother
-\usetikzlibrary{calc}
 
 % 优先使用编译平台已安装的字体；平台没有时改用项目 fonts 目录中的同名字体文件。
 % 上传到 latex.ustc 时 fonts 目录只需保留 STXINGKA.ttf。
@@ -48,11 +47,10 @@
   {\setCJKfamilyfont{xing}[AutoFakeBold=2]{STXingkai}}
   {\setCJKfamilyfont{xing}[Path=fonts/,AutoFakeBold=2]{STXINGKA.ttf}}
 \newcommand{\xingkaiword}{\CJKfamily{xing}}
-% 封面指定文字加宽汉字间距，不改变字形比例。
-\newcommand{\tightcover}{\renewcommand{\CJKglue}{\hskip 0.04em\relax}}
+% 封面指定文字使用固定的汉字间距（0.04em），不改变字形比例。
+\newcommand{\coverspacing}{\renewcommand{\CJKglue}{\hskip 0.04em\relax}}
+% 楷体：封面底部和“说明”页正文共用。
 \newcommand{\kaishuword}{\CJKfamily{kai}}
-% 说明正文使用楷体，与封面底部使用相同的字体。
-\newcommand{\instructionfont}{\CJKfamily{kai}}
 
 % 基本页面样式
 \pagestyle{empty}
@@ -84,13 +82,13 @@
   {\newcommand{\boxmark}{\boxglyph{\scalebox{1.25}{$\square$}}}
    \newcommand{\checkedbox}{\boxglyph{\scalebox{1.25}{\sbox{\checkglyphref}{$\square$}%
      \rlap{\usebox{\checkglyphref}}\makebox[\wd\checkglyphref][c]{\tikz[baseline=0pt,x=\wd\checkglyphref,y=\wd\checkglyphref]\draw[line width=.45pt,line cap=round,line join=round] (.22,.42)--(.42,.2)--(.8,.78);}}}}}
-% \choice{已选列表}{选项}：选项在 content.tex 的列表中时显示 ☑，否则显示 □。
+% \ktchoice{已选列表}{选项}：选项在 content.tex 的列表中时显示 ☑，否则显示 □。
 % \checkchoices{已选列表}{可选项}：列表中有无法识别的选项时给出警告。
 % \otherblank{内容}：“其他”后的横线，内容较长时横线随文字加长。
 \ExplSyntaxOn
 \clist_new:N \l__kt_choice_clist
 \msg_new:nnn { kt } { unknown-choice } { 无法识别的勾选项“#1”，可选项为：#2 }
-\NewDocumentCommand{\choice}{mm}
+\NewDocumentCommand{\ktchoice}{mm}
   {
     \clist_set:No \l__kt_choice_clist {#1}
     \clist_if_in:NnTF \l__kt_choice_clist {#2} { \checkedbox } { \boxmark }
@@ -109,16 +107,19 @@
       { \underline{\makebox[20mm]{#1}} }
   }
 \ExplSyntaxOff
+% 封面信息栏字号、简况表格内字号、表格线宽各只在这里定义一次。
+\newcommand{\coverfont}{\fontsize{22}{26}\selectfont}
+\newcommand{\cellfont}{\fontsize{10}{12}\selectfont}
+\tikzset{ktrule/.style={line width=.3pt}}
 \newcommand{\pagebegin}{\begin{tikzpicture}[remember picture,overlay,x=1mm,y=-1mm,shift={(current page.north west)},every node/.style={inner sep=0pt,outer sep=0pt}]}
 \newcommand{\pageend}{\end{tikzpicture}\null\newpage}
-\newcommand{\txt}[4]{\node[anchor=north west,text width=#3mm,align=left] at (#1,#2) {#4};}
+\newcommand{\kttext}[4]{\node[anchor=north west,text width=#3mm,align=left] at (#1,#2) {#4};}
 \newcommand{\centertext}[4]{\node[anchor=north,text width=#3mm,align=center] at (#1,#2) {#4};}
 \newcommand{\cellcenter}[4]{\node[anchor=center,text width=#3mm,align=center] at (#1,#2) {\fontsize{10}{14}\selectfont #4\par};}
 \newcommand{\cellleft}[4]{\node[anchor=west,text width=#3mm,align=left] at (#1,#2) {\fontsize{10}{14}\selectfont #4\par};}
-\newcommand{\border}[4]{\draw[line width=.3pt] (#1,#2) rectangle ++(#3,#4);}
-\newcommand{\heading}[3]{\txt{#1}{#2}{155}{\sffamily\fontsize{16}{18}\selectfont #3}}
-\newcommand{\inside}[4]{\txt{#1}{#2}{#3}{\fontsize{10}{14}\selectfont #4}}
-\newcommand{\num}[1]{\centertext{92}{248.44}{10}{\fontsize{9}{11}\selectfont #1}}
+\newcommand{\ktborder}[4]{\draw[ktrule] (#1,#2) rectangle ++(#3,#4);}
+\newcommand{\ktheading}[3]{\kttext{#1}{#2}{155}{\sffamily\fontsize{16}{18}\selectfont #3}}
+\newcommand{\ktpagenum}[1]{\centertext{92}{248.44}{10}{\fontsize{9}{11}\selectfont #1}}
 % 固定格子自动缩字号：内容在默认字号下放不进格子时，每次缩小 0.5pt 直到放得下，行距同比例缩小；
 % 缩到下限仍放不下时给出警告，提示精简内容。
 \newlength{\fitsize}
@@ -172,7 +173,7 @@
 % 按封面上的实际排法试排一次，记下题目占用的行数。
 \newcommand{\covertitlecount}{%
   \setbox0\vbox{\hsize=\covertitlewidth\parindent=0pt\raggedright
-    \fontsize{22}{26}\selectfont\setlength{\baselineskip}{11.6mm}%
+    \coverfont\setlength{\baselineskip}{11.6mm}%
     \covertitlelabel{\covertitlefont\reporttitle}\par\global\covertitlelines=\prevgraf}}
 \newcommand{\covertitleshrink}{%
   \covertitlecount
@@ -184,120 +185,8 @@
 % 正文边框补齐到页底：上一遍编译中若某节之后的标题被移到下一页，.aux 中会记下该页剩余的高度，
 % 本遍据此加长该节边框，使其延伸到页底。须在导言区定义，以便读入 .aux 时可用。
 \newcommand{\flowfillset}[2]{\expandafter\gdef\csname flowfill@#1\endcsname{#2}}
-\begin{document}
 
-% ==================== 封面 ====================
-\sbox{\covertitlebox}{\fontsize{22}{26}\selectfont\reporttitle}
-\settowidth{\covertitlewidth}{\fontsize{22}{26}\selectfont\covertitlelabel}
-\addtolength{\covertitlewidth}{65mm}
-\setlength{\covertitlesize}{22pt}
-\ifdim\wd\covertitlebox>65mm
-  \covertitleshrink
-  \ifnum\covertitlelines>2
-    \PackageWarningNoLine{kt}{封面题目在 14pt 下仍超过两行，请缩短题目}
-  \else\ifdim\covertitlesize<22pt
-    \typeout{封面题目较长，字号已缩小为 \the\covertitlesize}
-  \fi\fi
-\fi
-\pagebegin
-\centertext{92}{18}{165}{\xingkaiword\fontsize{26}{30}\selectfont \tightcover 中国科学技术大学}
-% TikZ 居中时汉字间距会被拉伸，副标题按原表取消额外字距。
-\centertext{92}{33}{170}{\sffamily\fontsize{24}{28}\selectfont\renewcommand{\CJKglue}{\hskip 0pt\relax}专业学位研究生学位申请成果开题报告}
-\centertext{92}{47}{100}{\fontsize{26}{30}\selectfont\coversample}
-\ifdim\wd\covertitlebox>65mm
-  \node[anchor=north west] (cover-title-line) at (30,61) {\fontsize{22}{26}\selectfont \phantom{\covertitlelabel}\underline{\makebox[65mm]{}}};
-  \node[anchor=north west,text width=\covertitlewidth,align=left] at (30,61) {\fontsize{22}{26}\selectfont\setlength{\baselineskip}{11.6mm}\covertitlelabel{\covertitlefont\reporttitle}\par};
-\else
-  \node[anchor=north west] (cover-title-line) at (30,61) {\fontsize{22}{26}\selectfont \covertitlelabel\underline{\makebox[65mm][c]{\reporttitle}}};
-\fi
-\draw[line width=.55pt] (30,80)--(cover-title-line.east |- 0,80);
-\foreach \y/\lab/\val in {87/学生姓名/\studentname,101/学生学号/\studentid,115/校内导师/\supervisor}{%
-  \txt{30}{\y}{140}{\fontsize{22}{26}\selectfont \lab：\fitline{95mm}{\lab}{\val}}}
-\def\coverfieldshift{-14}
-\ifcoversecondsupervisor
-  \txt{30}{129}{140}{\fontsize{22}{26}\selectfont 第二导师：\fitline{95mm}{第二导师}{\secondsupervisor}}
-  \def\coverfieldshift{0}
-\fi
-\foreach \y/\lab/\val in {143/实践导师/\practicesupervisor,157/所在院系/\department,171/专业类别/\majorcategory,185/专业领域/\majorfield,199/填表日期/\reportdate}{%
-  \txt{30}{\y+\coverfieldshift}{140}{\fontsize{22}{26}\selectfont \lab：\fitline{95mm}{\lab}{\val}}}
-\centertext{92}{219}{160}{\kaishuword\bfseries\fontsize{15}{18}\selectfont \tightcover 中国科学技术大学研究生院培养处}
-\centertext{92}{231}{120}{\kaishuword\bfseries\fontsize{15}{18}\selectfont \tightcover 二零二五年三月\quad 制表}
-\pageend
-% ==================== 说明 ====================
-\pagebegin
-\centertext{92}{28}{70}{\rmfamily\bfseries\fontsize{22}{26}\selectfont 说\quad 明}
-\txt{15}{50}{154}{\instructionfont\fontsize{18}{24}\selectfont \hspace*{12mm}1.\quad 学位申请成果的开题报告是保证研究生培养质量的一个重要环节，为了加强对研究生培养的过程管理，规范其学位申请成果的开题报告，特制此表。\par}
-\txt{15}{83}{154}{\instructionfont\fontsize{18}{24}\selectfont \hspace*{12mm}2.\quad 学位申请成果开题报告，应该在学位授予点或培养单位组织的学术报告会上报告，听取意见，论证后再填写此表。\par}
-\txt{15}{116}{154}{\instructionfont\fontsize{18}{24}\selectfont \hspace*{12mm}3.\quad 此表经导师签字后，交培养单位研究生教学管理办公室存档。\par}
-\txt{15}{138}{154}{\instructionfont\fontsize{18}{24}\selectfont \hspace*{12mm}4.\quad 研究生在提交学位申请时，必须提交该学位申请成果开题报告。\par}
-\pageend
-% ==================== 一、简况 ====================
-% 外框与合并单元格按 Word 参照页定位。
-% 先算好各固定格子的字号（内容放不下时自动缩小）。
-\renewcommand{\fitleading}{1}
-\fitprepare{cntitle}{110mm}{10.5mm}{简况表中文题目}{\reporttitle}
-\fitprepare{entitle}{110mm}{10.5mm}{简况表英文题目}{\englishtitle}
-\renewcommand{\fitleading}{1.4}
-\fitprepare{abstract}{135mm}{55mm}{摘要}{\abstracttext}
-\fitprepare{cnkey}{120mm}{6.5mm}{中文关键词}{\keywords}
-\fitprepare{enkey}{120mm}{6.5mm}{英文关键词}{\englishkeywords}
-\fitprepare{source}{146mm}{24mm}{选题来源}{\sourceoftopic}
-\pagebegin
-\heading{15}{17}{一、简况}
-% 表格外框和分割线
-\border{13.5}{27}{157}{214}
-\foreach \y in {56,81,108,131,214} {\draw[line width=.3pt] (13.5,\y)--(170.5,\y);}
-\draw[line width=.3pt] (20.3,41)--(170.5,41) (20.3,189)--(170.5,189);
-\draw[line width=.3pt] (20.3,27)--(20.3,56) (39.8,27)--(39.8,56) (69.8,27)--(69.8,41) (94.7,27)--(94.7,41) (134,27)--(134,41) (151,27)--(151,41);
-\draw[line width=.3pt] (30,56)--(30,131) (53.5,108)--(53.5,131) (30,119.5)--(170.5,119.5);
-\draw[line width=.3pt] (20.3,131)--(20.3,241) (30,131)--(30,214) (30,200)--(170.5,200) (43.5,200)--(43.5,214) (30,207)--(170.5,207);
-
-% 研究生信息与培养方式
-\cellcenter{16.9}{41.5}{5}{\sffamily\bfseries\fontsize{10}{12}\selectfont 研\\究\\生\\简\\况}
-\cellcenter{30}{34}{18}{\fontsize{10}{12}\selectfont 姓\quad 名}
-\cellcenter{55}{34}{28}{\fontsize{10}{12}\selectfont \studentname}
-\cellcenter{82}{34}{20}{\fontsize{10}{12}\selectfont 学\quad 号}
-\cellcenter{114}{34}{35}{\fontsize{10}{12}\selectfont \studentid}
-\cellcenter{142}{34}{16}{\fontsize{10}{12}\selectfont 性\quad 别}
-\cellcenter{160}{34}{17}{\fontsize{10}{12}\selectfont \gender}
-\cellcenter{30}{48.5}{18}{\fontsize{10}{12}\selectfont 培养方式}
-\checkchoices{\studymode}{全日制,非全日制}\checkchoices{\degreetype}{硕士,博士}
-\checkchoices{\masterachievement}{专题研究类论文,调研报告,案例分析报告,产品设计（作品创作）,方案设计,其他}
-\checkchoices{\doctorachievement}{专题研究类论文,重大装备,仪器设备,其他硬件产品,软件产品,设计方案,技术标准,其他}
-\cellleft{62}{48.5}{100}{\choice{\studymode}{全日制}\ 全日制\hspace{17mm}\choice{\studymode}{非全日制}\ 非全日制}
-
-% 专业学位类型
-\cellcenter{21.75}{68.5}{15}{\sffamily\bfseries\fontsize{10}{12}\selectfont \choice{\degreetype}{硕士}\\专业学位\\硕士}
-\cellleft{34}{68.5}{133}{\makebox[33mm][l]{\choice{\masterachievement}{专题研究类论文}\ 专题研究类论文}\makebox[26mm][l]{\choice{\masterachievement}{调研报告}\ 调研报告}\makebox[29mm][l]{\choice{\masterachievement}{案例分析报告}\ 案例分析报告}\choice{\masterachievement}{产品设计（作品创作）}\ 产品设计（作品创作）\\[2mm] \makebox[33mm][l]{\choice{\masterachievement}{方案设计}\ 方案设计}\choice{\masterachievement}{其他}\ 其他\ \otherblank{\masterother}}
-\cellcenter{21.75}{94.5}{15}{\sffamily\bfseries\fontsize{10}{12}\selectfont \choice{\degreetype}{博士}\\专业学位\\博士}
-\cellleft{34}{94.5}{133}{学位论文申请：\choice{\doctorachievement}{专题研究类论文}\ 专题研究类论文\\[2mm] \makebox[27mm][l]{实践成果申请：}\makebox[25mm][l]{\choice{\doctorachievement}{重大装备}\ 重大装备}\makebox[26mm][l]{\choice{\doctorachievement}{仪器设备}\ 仪器设备}\makebox[35mm][l]{\choice{\doctorachievement}{其他硬件产品}\ 其他硬件产品}\choice{\doctorachievement}{软件产品}\ 软件产品\\[2mm] \makebox[27mm][l]{}\makebox[25mm][l]{\choice{\doctorachievement}{设计方案}\ 设计方案}\makebox[26mm][l]{\choice{\doctorachievement}{技术标准}\ 技术标准}\choice{\doctorachievement}{其他}\ 其他\ \otherblank{\doctorother}}
-
-% 成果题目、摘要和关键词
-\cellcenter{21.75}{119.5}{15}{\sffamily\bfseries\fontsize{10}{12}\selectfont 学位申请\\成果题目}
-\cellcenter{41.75}{113.75}{20}{\fontsize{10}{12}\selectfont 中\quad 文}
-\cellcenter{41.75}{125.25}{20}{\fontsize{10}{12}\selectfont 英\quad 文}
-\renewcommand{\fitleading}{1}
-\fitcellleft{55.5}{113.75}{110}{cntitle}{\reporttitle}\fitcellleft{55.5}{125.25}{110}{entitle}{\englishtitle}
-\renewcommand{\fitleading}{1.4}
-\cellcenter{16.9}{172.5}{5}{\sffamily\bfseries\fontsize{10}{10}\selectfont 学\\位\\申\\请\\成\\果\\摘\\要\\和\\关\\键\\词}
-\cellcenter{25}{160}{8}{\fontsize{10}{14}\selectfont 摘\\要}
-\fitinside{32}{133}{135}{abstract}{\abstracttext}
-\cellcenter{25}{201.5}{8}{\fontsize{10}{12}\selectfont 关\\键\\词}
-\cellcenter{36.75}{203.5}{10}{中文}\cellcenter{36.75}{210.5}{10}{英文}
-\cellleft{32}{194.5}{136}{关键词数量三至五个，主题词之间空一格（英文用“/ ”分隔）}
-\fitcellleft{45.5}{203.5}{120}{cnkey}{\keywords}\fitcellleft{45.5}{210.5}{120}{enkey}{\englishkeywords}
-
-% 选题来源
-\cellcenter{17}{227.5}{5}{\sffamily\bfseries\fontsize{10}{12}\selectfont 选\\题\\来\\源}
-\fitinside{22.3}{216}{146}{source}{\sourceoftopic}
-\num{1}\pageend
-% ==================== 二至七、报告正文 ====================
-% 正文以可分页边框排版；宏内可使用 \par 分段。
-% 空白时保留与原表近似的留白；填入内容后边框随文字跨页。
-\newgeometry{left=16mm,right=16mm,top=17mm,bottom=20mm}
-\pagestyle{fancy}\fancyhf{}\fancyfoot[C]{\fontsize{9}{11}\selectfont\thepage}\renewcommand{\headrulewidth}{0pt}
-\setcounter{page}{2}
-\setlength{\parindent}{0pt}
+% ==================== 正文边框（二至七节） ====================
 % 标题前检查当前页剩余空间：不足以放下标题和约三行正文时换页，避免标题单独落在页底。
 % 空白模板中，四、六两节前的剩余空间不足此值，因而仍各自从新页开始，保持原表版式；
 % 前一节正文较长、在页面中部结束时，下一节直接接排，不留大片空白。
@@ -404,6 +293,140 @@
   \ifdim\flowremaining>0pt\vspace*{\flowremaining}\fi
   \end{framed}\flownotesflush\vspace{\flowboxgap}}
 
+% ==================== 签名区 ====================
+% \signrow{栏目名}{签名图片}：未填图片时为空白横线；填写后图片居中置于横线上方，
+% 图高 9mm、下沿略低于横线，且不占行高，不改变各行间距。
+\newlength{\signlinewidth}
+\ExplSyntaxOn
+\NewDocumentCommand{\signrow}{mm}
+  {
+    #1
+    \tl_if_blank:oTF {#2}
+      { \hrulefill }
+      {
+        \settowidth{\signlinewidth}{#1}
+        \setlength{\signlinewidth}{\dimexpr\linewidth-\signlinewidth\relax}
+        \rlap{\rule{\signlinewidth}{0.4pt}}
+        \makebox[\signlinewidth][c]{\smash{\raisebox{-.5mm}{\includegraphics[height=9mm,width=\dimexpr\signlinewidth-4mm\relax,keepaspectratio]{#2}}}}
+      }
+  }
+\NewDocumentCommand{\signdatefield}{}
+  { \tl_if_blank:oTF {\signdate} { 年\hspace{42pt}月\hspace{42pt}日 } { \signdate } }
+\ExplSyntaxOff
+\begin{document}
+
+% ==================== 封面 ====================
+\sbox{\covertitlebox}{\coverfont\reporttitle}
+\settowidth{\covertitlewidth}{\coverfont\covertitlelabel}
+\addtolength{\covertitlewidth}{65mm}
+\setlength{\covertitlesize}{22pt}
+\ifdim\wd\covertitlebox>65mm
+  \covertitleshrink
+  \ifnum\covertitlelines>2
+    \PackageWarningNoLine{kt}{封面题目在 14pt 下仍超过两行，请缩短题目}
+  \else\ifdim\covertitlesize<22pt
+    \typeout{封面题目较长，字号已缩小为 \the\covertitlesize}
+  \fi\fi
+\fi
+\pagebegin
+\centertext{92}{18}{165}{\xingkaiword\fontsize{26}{30}\selectfont \coverspacing 中国科学技术大学}
+% TikZ 居中时汉字间距会被拉伸，副标题按原表取消额外字距。
+\centertext{92}{33}{170}{\sffamily\fontsize{24}{28}\selectfont\renewcommand{\CJKglue}{\hskip 0pt\relax}专业学位研究生学位申请成果开题报告}
+\centertext{92}{47}{100}{\fontsize{26}{30}\selectfont\coversample}
+\ifdim\wd\covertitlebox>65mm
+  \node[anchor=north west] (cover-title-line) at (30,61) {\coverfont \phantom{\covertitlelabel}\underline{\makebox[65mm]{}}};
+  \node[anchor=north west,text width=\covertitlewidth,align=left] at (30,61) {\coverfont\setlength{\baselineskip}{11.6mm}\covertitlelabel{\covertitlefont\reporttitle}\par};
+\else
+  \node[anchor=north west] (cover-title-line) at (30,61) {\coverfont \covertitlelabel\underline{\makebox[65mm][c]{\reporttitle}}};
+\fi
+\draw[line width=.55pt] (30,80)--(cover-title-line.east |- 0,80);
+\foreach \y/\lab/\val in {87/学生姓名/\studentname,101/学生学号/\studentid,115/校内导师/\supervisor}{%
+  \kttext{30}{\y}{140}{\coverfont \lab：\fitline{95mm}{\lab}{\val}}}
+\def\coverfieldshift{-14}
+\ifcoversecondsupervisor
+  \kttext{30}{129}{140}{\coverfont 第二导师：\fitline{95mm}{第二导师}{\secondsupervisor}}
+  \def\coverfieldshift{0}
+\fi
+\foreach \y/\lab/\val in {143/实践导师/\practicesupervisor,157/所在院系/\department,171/专业类别/\majorcategory,185/专业领域/\majorfield,199/填表日期/\reportdate}{%
+  \kttext{30}{\y+\coverfieldshift}{140}{\coverfont \lab：\fitline{95mm}{\lab}{\val}}}
+\centertext{92}{219}{160}{\kaishuword\bfseries\fontsize{15}{18}\selectfont \coverspacing 中国科学技术大学研究生院培养处}
+\centertext{92}{231}{120}{\kaishuword\bfseries\fontsize{15}{18}\selectfont \coverspacing 二零二五年三月\quad 制表}
+\pageend
+% ==================== 说明 ====================
+\pagebegin
+\centertext{92}{28}{70}{\rmfamily\bfseries\fontsize{22}{26}\selectfont 说\quad 明}
+\kttext{15}{50}{154}{\kaishuword\fontsize{18}{24}\selectfont \hspace*{12mm}1.\quad 学位申请成果的开题报告是保证研究生培养质量的一个重要环节，为了加强对研究生培养的过程管理，规范其学位申请成果的开题报告，特制此表。\par}
+\kttext{15}{83}{154}{\kaishuword\fontsize{18}{24}\selectfont \hspace*{12mm}2.\quad 学位申请成果开题报告，应该在学位授予点或培养单位组织的学术报告会上报告，听取意见，论证后再填写此表。\par}
+\kttext{15}{116}{154}{\kaishuword\fontsize{18}{24}\selectfont \hspace*{12mm}3.\quad 此表经导师签字后，交培养单位研究生教学管理办公室存档。\par}
+\kttext{15}{138}{154}{\kaishuword\fontsize{18}{24}\selectfont \hspace*{12mm}4.\quad 研究生在提交学位申请时，必须提交该学位申请成果开题报告。\par}
+\pageend
+% ==================== 一、简况 ====================
+% 外框与合并单元格按 Word 参照页定位。
+% 先算好各固定格子的字号（内容放不下时自动缩小）。
+\renewcommand{\fitleading}{1}
+\fitprepare{cntitle}{110mm}{10.5mm}{简况表中文题目}{\reporttitle}
+\fitprepare{entitle}{110mm}{10.5mm}{简况表英文题目}{\englishtitle}
+\renewcommand{\fitleading}{1.4}
+\fitprepare{abstract}{135mm}{55mm}{摘要}{\abstracttext}
+\fitprepare{cnkey}{120mm}{6.5mm}{中文关键词}{\keywords}
+\fitprepare{enkey}{120mm}{6.5mm}{英文关键词}{\englishkeywords}
+\fitprepare{source}{146mm}{24mm}{选题来源}{\sourceoftopic}
+\pagebegin
+\ktheading{15}{17}{一、简况}
+% 表格外框和分割线
+\ktborder{13.5}{27}{157}{214}
+\foreach \y in {56,81,108,131,214} {\draw[ktrule] (13.5,\y)--(170.5,\y);}
+\draw[ktrule] (20.3,41)--(170.5,41) (20.3,189)--(170.5,189);
+\draw[ktrule] (20.3,27)--(20.3,56) (39.8,27)--(39.8,56) (69.8,27)--(69.8,41) (94.7,27)--(94.7,41) (134,27)--(134,41) (151,27)--(151,41);
+\draw[ktrule] (30,56)--(30,131) (53.5,108)--(53.5,131) (30,119.5)--(170.5,119.5);
+\draw[ktrule] (20.3,131)--(20.3,241) (30,131)--(30,214) (30,200)--(170.5,200) (43.5,200)--(43.5,214) (30,207)--(170.5,207);
+
+% 研究生信息与培养方式
+\cellcenter{16.9}{41.5}{5}{\sffamily\bfseries\cellfont 研\\究\\生\\简\\况}
+\cellcenter{30}{34}{18}{\cellfont 姓\quad 名}
+\cellcenter{55}{34}{28}{\cellfont \studentname}
+\cellcenter{82}{34}{20}{\cellfont 学\quad 号}
+\cellcenter{114}{34}{35}{\cellfont \studentid}
+\cellcenter{142}{34}{16}{\cellfont 性\quad 别}
+\cellcenter{160}{34}{17}{\cellfont \gender}
+\cellcenter{30}{48.5}{18}{\cellfont 培养方式}
+\checkchoices{\studymode}{全日制,非全日制}\checkchoices{\degreetype}{硕士,博士}
+\checkchoices{\masterachievement}{专题研究类论文,调研报告,案例分析报告,产品设计（作品创作）,方案设计,其他}
+\checkchoices{\doctorachievement}{专题研究类论文,重大装备,仪器设备,其他硬件产品,软件产品,设计方案,技术标准,其他}
+\cellleft{62}{48.5}{100}{\ktchoice{\studymode}{全日制}\ 全日制\hspace{17mm}\ktchoice{\studymode}{非全日制}\ 非全日制}
+
+% 专业学位类型
+\cellcenter{21.75}{68.5}{15}{\sffamily\bfseries\cellfont \ktchoice{\degreetype}{硕士}\\专业学位\\硕士}
+\cellleft{34}{68.5}{133}{\makebox[33mm][l]{\ktchoice{\masterachievement}{专题研究类论文}\ 专题研究类论文}\makebox[26mm][l]{\ktchoice{\masterachievement}{调研报告}\ 调研报告}\makebox[29mm][l]{\ktchoice{\masterachievement}{案例分析报告}\ 案例分析报告}\ktchoice{\masterachievement}{产品设计（作品创作）}\ 产品设计（作品创作）\\[2mm] \makebox[33mm][l]{\ktchoice{\masterachievement}{方案设计}\ 方案设计}\ktchoice{\masterachievement}{其他}\ 其他\ \otherblank{\masterother}}
+\cellcenter{21.75}{94.5}{15}{\sffamily\bfseries\cellfont \ktchoice{\degreetype}{博士}\\专业学位\\博士}
+\cellleft{34}{94.5}{133}{学位论文申请：\ktchoice{\doctorachievement}{专题研究类论文}\ 专题研究类论文\\[2mm] \makebox[27mm][l]{实践成果申请：}\makebox[25mm][l]{\ktchoice{\doctorachievement}{重大装备}\ 重大装备}\makebox[26mm][l]{\ktchoice{\doctorachievement}{仪器设备}\ 仪器设备}\makebox[35mm][l]{\ktchoice{\doctorachievement}{其他硬件产品}\ 其他硬件产品}\ktchoice{\doctorachievement}{软件产品}\ 软件产品\\[2mm] \makebox[27mm][l]{}\makebox[25mm][l]{\ktchoice{\doctorachievement}{设计方案}\ 设计方案}\makebox[26mm][l]{\ktchoice{\doctorachievement}{技术标准}\ 技术标准}\ktchoice{\doctorachievement}{其他}\ 其他\ \otherblank{\doctorother}}
+
+% 成果题目、摘要和关键词
+\cellcenter{21.75}{119.5}{15}{\sffamily\bfseries\cellfont 学位申请\\成果题目}
+\cellcenter{41.75}{113.75}{20}{\cellfont 中\quad 文}
+\cellcenter{41.75}{125.25}{20}{\cellfont 英\quad 文}
+\renewcommand{\fitleading}{1}
+\fitcellleft{55.5}{113.75}{110}{cntitle}{\reporttitle}\fitcellleft{55.5}{125.25}{110}{entitle}{\englishtitle}
+\renewcommand{\fitleading}{1.4}
+\cellcenter{16.9}{172.5}{5}{\sffamily\bfseries\fontsize{10}{10}\selectfont 学\\位\\申\\请\\成\\果\\摘\\要\\和\\关\\键\\词}
+\cellcenter{25}{160}{8}{\fontsize{10}{14}\selectfont 摘\\要}
+\fitinside{32}{133}{135}{abstract}{\abstracttext}
+\cellcenter{25}{201.5}{8}{\cellfont 关\\键\\词}
+\cellcenter{36.75}{203.5}{10}{中文}\cellcenter{36.75}{210.5}{10}{英文}
+\cellleft{32}{194.5}{136}{关键词数量三至五个，主题词之间空一格（英文用“/ ”分隔）}
+\fitcellleft{45.5}{203.5}{120}{cnkey}{\keywords}\fitcellleft{45.5}{210.5}{120}{enkey}{\englishkeywords}
+
+% 选题来源
+\cellcenter{17}{227.5}{5}{\sffamily\bfseries\cellfont 选\\题\\来\\源}
+\fitinside{22.3}{216}{146}{source}{\sourceoftopic}
+\ktpagenum{1}\pageend
+% ==================== 二至七、报告正文 ====================
+% 正文以可分页边框排版；宏内可使用 \par 分段。
+% 空白时保留与原表近似的留白；填入内容后边框随文字跨页。
+\newgeometry{left=16mm,right=16mm,top=17mm,bottom=20mm}
+\pagestyle{fancy}\fancyhf{}\fancyfoot[C]{\fontsize{9}{11}\selectfont\thepage}\renewcommand{\headrulewidth}{0pt}
+\setcounter{page}{2}
+
 % 二、选题依据
 \flowheading{二、选题依据}
 \flowbox{\topicbasis\par\printbibliography[heading=proposalreferences,title={参考文献}]}{125.12mm}
@@ -429,25 +452,6 @@
 \flowbox{\researchplan}{68.27mm}
 
 % 签名
-% \signrow{栏目名}{签名图片}：未填图片时为空白横线；填写后图片居中置于横线上方，
-% 图高 9mm、下沿略低于横线，且不占行高，不改变各行间距。
-\newlength{\signlinewidth}
-\ExplSyntaxOn
-\NewDocumentCommand{\signrow}{mm}
-  {
-    #1
-    \tl_if_blank:oTF {#2}
-      { \hrulefill }
-      {
-        \settowidth{\signlinewidth}{#1}
-        \setlength{\signlinewidth}{\dimexpr\linewidth-\signlinewidth\relax}
-        \rlap{\rule{\signlinewidth}{0.4pt}}
-        \makebox[\signlinewidth][c]{\smash{\raisebox{-.5mm}{\includegraphics[height=9mm,width=\dimexpr\signlinewidth-4mm\relax,keepaspectratio]{#2}}}}
-      }
-  }
-\NewDocumentCommand{\signdatefield}{}
-  { \tl_if_blank:oTF {\signdate} { 年\hspace{42pt}月\hspace{42pt}日 } { \signdate } }
-\ExplSyntaxOff
 \vspace{12mm}
 \hfill\begin{minipage}{90mm}\fontsize{12}{22}\selectfont
 \signrow{研究生本人签名：}{\studentsignature}\\

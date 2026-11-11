@@ -8,6 +8,8 @@
 - `references.bib`：参考文献条目（BibTeX 格式）。
 - `main.tex`：页面、字体、表格和分页排版；使用 XeLaTeX 编译此文件，一般无需修改。
 - `fonts/`：仓库中只包含封面使用的 `STXINGKA.ttf`（华文行楷），其余字体使用系统或平台已安装的字体。
+- `.latexmkrc`：让 `latexmk` 默认使用 XeLaTeX。
+- `tests/`：回归测试脚本，修改 `main.tex` 后用来检查排版，见“修改模板后的测试”；填写报告时用不到。
 
 ## 在 USTC 在线平台使用
 
@@ -63,6 +65,7 @@
   表格和表题作为一个整体排版，当前页放不下时整张移到下一页。
 
 - 网址：写成 `\url{https://...}`，过长时会自动断行。
+- 公式：已加载 `amsmath`，可使用 `equation`、`align` 等环境和 `\eqref`。
 - 脚注：可直接使用 `\footnote{...}`，脚注内容排在该节边框结束的那一页底部，该页放不下时顺延到下一页。
 
 ### 参考文献
@@ -157,10 +160,10 @@
 使用包含 XeLaTeX 的 TeX 发行版，在项目目录运行：
 
 ```sh
-latexmk -xelatex main.tex
+latexmk main.tex
 ```
 
-`latexmk` 会自动编译并运行 Biber 生成参考文献，直到结果稳定为止。若直接使用 `xelatex main.tex`，请按 `xelatex main`、`biber main`、`xelatex main`、`xelatex main` 的顺序编译（插入图片后可能需要再编译一遍），直到日志中不再出现 `Rerun` 提示。
+项目中的 `.latexmkrc` 已指定使用 XeLaTeX（没有这个文件时请运行 `latexmk -xelatex main.tex`）。`latexmk` 会自动编译并运行 Biber 生成参考文献，直到结果稳定为止。若直接使用 `xelatex main.tex`，请按 `xelatex main`、`biber main`、`xelatex main`、`xelatex main` 的顺序编译（插入图片后可能需要再编译一遍），直到日志中不再出现 `Rerun` 提示。
 
 参考文献需要 Biber 和 `biblatex-gb7714-2015` 样式。TinyTeX 等精简发行版可能未预装，可用 `tlmgr` 补装：
 
@@ -171,6 +174,18 @@ tlmgr install biber biblatex biblatex-gb7714-2015 xstring
 如果安装后仍提示找不到样式，请运行 `mktexlsr` 更新 TeX 文件索引。
 
 仓库的 `fonts/` 只提供华文行楷。本地缺少 Times New Roman、宋体、黑体或楷体时，需要先安装这些字体，或把对应文件放入 `fonts/`，否则编译会失败。文件名须与 `main.tex` 一致：`times.ttf`、`timesbd.ttf`、`timesi.ttf`、`timesbi.ttf`、`Simsun.ttc`、`SimHei.ttf`、`Kaiti.ttf`。如需在本地显示 DejaVu Sans 的勾选框，可自行安装 DejaVu Sans 字体。
+
+## 修改模板后的测试
+
+修改 `main.tex` 后，可在项目目录运行：
+
+```sh
+sh tests/run.sh
+```
+
+脚本会编译两份文档：当前的 `content.tex`，以及由 `tests/gen_stress.py` 生成的压力文档（把第二至七节写满长段落、图、表、公式、列表、脚注、长网址和 22 条文献，内容均为虚构）。编译出错、日志中出现模板警告或内容冲出页面时判为失败。结果在 `tests/build/<用例>/main.pdf`，可以打开检查分页效果。需要 `latexmk` 和 Python 3。
+
+本机和 `fonts/` 中都没有宋体、黑体、楷体、Times New Roman 时，脚本会用 TeX Live 自带的 Fandol 和 TeX Gyre Termes 字体顶替，只为让编译通过，版面与正式字体会有出入。推送到 GitHub 后，`.github/workflows/build.yml` 会用这种方式自动运行同一脚本。
 
 ## 反馈问题
 

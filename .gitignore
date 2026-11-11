@@ -4,8 +4,6 @@
 *.pdf
 *.synctex.gz
 .DS_Store
-.research/checkpoints/
-.research/cache/
 *.bbl
 *.bcf
 *.blg
@@ -26,4 +24,15 @@
 *.vrb
 *.xdv
 *-SAVE-ERROR
+missfont.log
+# Lattice 等本地编辑器的项目状态
+.research/
+# 本地自备的字体不随仓库分发，仓库只提供华文行楷
+fonts/*
+!fonts/STXINGKA.ttf
+!fonts/README.md
+# 回归测试的编译输出
+tests/build/
+.research/checkpoints/
+.research/cache/
 .research/review/
