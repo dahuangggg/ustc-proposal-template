@@ -111,6 +111,9 @@
 \newcommand{\coverfont}{\fontsize{22}{26}\selectfont}
 \newcommand{\cellfont}{\fontsize{10}{12}\selectfont}
 \tikzset{ktrule/.style={line width=.3pt}}
+% 说明页：\notefont 为正文字体；\noteline[标点样式]{一行文字} 把一行拉满版心宽度（两端对齐）。
+\newcommand{\notefont}{\kaishuword\fontsize{18}{24}\selectfont}
+\newcommand{\noteline}[2][quanjiao]{{\xeCJKsetup{PunctStyle=#1}\makebox[154mm][s]{#2}}}
 \newcommand{\pagebegin}{\begin{tikzpicture}[remember picture,overlay,x=1mm,y=-1mm,shift={(current page.north west)},every node/.style={inner sep=0pt,outer sep=0pt}]}
 \newcommand{\pageend}{\end{tikzpicture}\null\newpage}
 \newcommand{\kttext}[4]{\node[anchor=north west,text width=#3mm,align=left] at (#1,#2) {#4};}
@@ -355,10 +358,22 @@
 % ==================== 说明 ====================
 \pagebegin
 \centertext{92}{28}{70}{\rmfamily\bfseries\fontsize{22}{26}\selectfont 说\quad 明}
-\kttext{15}{50}{154}{\kaishuword\fontsize{18}{24}\selectfont \hspace*{12mm}1.\quad 学位申请成果的开题报告是保证研究生培养质量的一个重要环节，为了加强对研究生培养的过程管理，规范其学位申请成果的开题报告，特制此表。\par}
-\kttext{15}{83}{154}{\kaishuword\fontsize{18}{24}\selectfont \hspace*{12mm}2.\quad 学位申请成果开题报告，应该在学位授予点或培养单位组织的学术报告会上报告，听取意见，论证后再填写此表。\par}
-\kttext{15}{116}{154}{\kaishuword\fontsize{18}{24}\selectfont \hspace*{12mm}3.\quad 此表经导师签字后，交培养单位研究生教学管理办公室存档。\par}
-\kttext{15}{138}{154}{\kaishuword\fontsize{18}{24}\selectfont \hspace*{12mm}4.\quad 研究生在提交学位申请时，必须提交该学位申请成果开题报告。\par}
+% 说明页为固定文字，按 Word 原表逐行排版：每行两端对齐，换行位置与原表一致。
+% Word 会在一行放不下时压缩标点，这里对应的行用半角宽度的标点（\noteline[banjiao]）。
+\kttext{15}{50}{154}{\notefont
+  \noteline[banjiao]{\hspace*{12mm}1.\quad 学位申请成果的开题报告是保证研究生培养质}\\
+  \noteline[banjiao]{量的一个重要环节，为了加强对研究生培养的过程管理，}\\
+  规范其学位申请成果的开题报告，特制此表。\par}
+\kttext{15}{83}{154}{\notefont
+  \noteline[banjiao]{\hspace*{12mm}2.\quad 学位申请成果开题报告，应该在学位授予点或培}\\
+  \noteline{养单位组织的学术报告会上报告，听取意见，论证后再}\\
+  填写此表。\par}
+\kttext{15}{116}{154}{\notefont
+  \noteline[banjiao]{\hspace*{12mm}3.\quad 此表经导师签字后，交培养单位研究生教学管理}\\
+  办公室存档。\par}
+\kttext{15}{138}{154}{\notefont
+  \noteline[banjiao]{\hspace*{12mm}4.\quad 研究生在提交学位申请时，必须提交该学位申请}\\
+  成果开题报告。\par}
 \pageend
 % ==================== 一、简况 ====================
 % 外框与合并单元格按 Word 参照页定位。
